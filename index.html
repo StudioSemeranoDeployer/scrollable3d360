@@ -55,7 +55,7 @@
 
     // — 360° Background Sphere
     const loaderTex = new THREE.TextureLoader();
-    loaderTex.load('your-360-bg.jpg', tex => {
+    loaderTex.load('eso0932a.jpg', tex => {
       const bgGeo = new THREE.SphereGeometry( 50, 60, 40 );
       const bgMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide });
       const bgMesh = new THREE.Mesh(bgGeo, bgMat);
@@ -76,7 +76,7 @@
 
     // — Load and center GLTF model
     const loader3D = new GLTFLoader();
-    loader3D.load('model.glb', gltf => {
+    loader3D.load('human-headed-winged-bull.glb', gltf => {
       const model = gltf.scene;
       scene.add(model);
       model.position.set(0, 0, 0);
