@@ -1,0 +1,60 @@
+/* Reset base */
+* { margin:0; padding:0; box-sizing:border-box; }
+body, html { height:200vh; font-family: 'Segoe UI', sans-serif; }
+
+/* ≣ Hamburger & Nav */
+#menu-toggle { display:none; }
+.hamburger {
+  position: fixed; top: 1rem; right: 1rem;
+  width: 2rem; height: 1.6rem; cursor: pointer;
+  display:flex; flex-direction:column; justify-content:space-between;
+  z-index: 100;
+}
+.hamburger span {
+  display:block; height:4px; border-radius:2px;
+  background: #fff; transition: 0.3s;
+}
+#menu-toggle:checked + .hamburger span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+#menu-toggle:checked + .hamburger span:nth-child(2) { opacity:0; }
+#menu-toggle:checked + .hamburger span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+.nav {
+  position: fixed; top:0; right:0;
+  width: 70%; max-width:300px; height:100vh;
+  background: rgba(0,0,0,0.85);
+  transform: translateX(100%); transition:0.5s;
+  display: flex; align-items:center; justify-content:center;
+  z-index:90;
+}
+#menu-toggle:checked ~ .nav { transform: translateX(0); }
+.nav ul { list-style:none; text-align:center; }
+.nav li { margin:1.5rem 0; }
+.nav a {
+  color:#fff; text-decoration:none; font-size:1.5rem;
+  transition: color 0.3s;
+}
+.nav a:hover { color: #4dd0e1; }
+
+/* Canvas container covers full screen */
+#canvas-container {
+  position: fixed; top:0; left:0;
+  width:100%; height:100%; pointer-events:none;
+  z-index:0;
+}
+
+/* Sections styling */
+section {
+  position: relative; padding:100vh 2rem 2rem;
+  text-align:center; color:#333;
+  background: linear-gradient(180deg, #fafafa 0%, #eaeaea 100%);
+}
+section:nth-of-type(even) {
+  background: linear-gradient(180deg, #eaeaea 0%, #fafafa 100%);
+}
+section h1, section h2 {
+  font-size:3rem; margin-bottom:1rem;
+}
