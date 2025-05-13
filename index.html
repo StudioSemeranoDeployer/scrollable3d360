@@ -4,114 +4,203 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>One‑Page 3D & Scroll</title>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- ImportMap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.156.1/build/three.module.js",
+      "three/": "https://unpkg.com/three@0.156.1/",
+      "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js",
+      "gsap/ScrollTrigger": "https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js",
+      "@studio-freight/lenis": "https://cdn.jsdelivr.net/npm/@studio-freight/lenis@0.2.26/esm/index.js"
+    }
+  }
+  </script>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{height:200vh;font-family:'Segoe UI',sans-serif;overflow-x:hidden;}
+
+    /* Menu */
+    #menu-toggle,#tools-toggle{display:none;}
+    .hamburger{position:fixed;top:1rem;right:1rem;width:2rem;height:1.6rem;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;z-index:100;}
+    .hamburger span{height:4px;border-radius:2px;background:#fff;transition:0.3s;}
+    #menu-toggle:checked + .hamburger span:nth-child(1){transform:translateY(8px) rotate(45deg);}
+    #menu-toggle:checked + .hamburger span:nth-child(2){opacity:0;}
+    #menu-toggle:checked + .hamburger span:nth-child(3){transform:translateY(-8px) rotate(-45deg);}
+    nav{position:fixed;top:0;right:0;height:100vh;width:70%;max-width:300px;background:rgba(0,0,0,0.85);transform:translateX(100%);transition:0.5s;z-index:90;display:flex;align-items:center;justify-content:center;}
+    #menu-toggle:checked ~ nav{transform:translateX(0);}
+    nav ul{list-style:none;text-align:center;}
+    nav li{margin:1rem 0;}
+    nav a, .tools-btn{color:#fff;text-decoration:none;font-size:1.2rem;cursor:pointer;transition:color .3s;}
+    nav a:hover, .tools-btn:hover{color:#4dd0e1;}
+
+    /* Sidebar Tools */
+    .sidebar{position:fixed;top:0;left:100%;width:300px;height:100vh;background:#222;color:#fff;padding:1.5rem;transition:transform .3s;z-index:95;}
+    #tools-toggle:checked ~ .sidebar{transform:translateX(-100%);}
+    .sidebar h3{margin-bottom:1rem;}
+    .sidebar label{display:block;margin:.5rem 0;font-size:.9rem;}
+    .sidebar input[type="text"]{width:100%;padding:.5rem;margin-bottom:1rem;border:none;border-radius:4px;}
+    .sidebar button{width:100%;padding:.7rem;border:none;border-radius:4px;background:#4dd0e1;color:#222;font-weight:bold;cursor:pointer;margin-bottom:1rem;}
+    .sidebar button:hover{background:#3cbabf;}
+
+    /* Canvas */
+    #canvas-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;}
+
+    /* Sections */
+    section{padding:100vh 2rem 2rem;text-align:center;background:rgba(255,255,255,0.6);}
+    section:nth-of-type(odd){background:transparent;}
+    section h1, section h2{font-size:3rem;color:#333;margin-bottom:1rem;}
+
+    /* Preset buttons panel */
+    .preset-panel{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);display:flex;gap:1rem;z-index:100;}
+    .preset-panel button{padding:.7rem 1.2rem;border:none;border-radius:4px;background:#fff;color:#222;font-weight:bold;cursor:pointer;transition:background .3s;}
+    .preset-panel button:hover{background:#e0e0e0;}
+  </style>
 </head>
 <body>
-  <!-- Hamburger Menu -->
-  <input type="checkbox" id="menu-toggle" />
-  <label for="menu-toggle" class="hamburger">
-    <span></span><span></span><span></span>
-  </label>
-  <nav class="nav">
+
+  <!-- Main menu & Tools toggle -->
+  <input type="checkbox" id="menu-toggle"/>
+  <label for="menu-toggle" class="hamburger"><span></span><span></span><span></span></label>
+  <nav>
     <ul>
       <li><a href="#home">Home</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="#contact">Contact</a></li>
+      <li><label for="tools-toggle" class="tools-btn">Tools</label></li>
     </ul>
   </nav>
 
-  <!-- Canvas 3D e sfondo -->
+  <!-- Tools sidebar -->
+  <input type="checkbox" id="tools-toggle"/>
+  <div class="sidebar">
+    <h3>Custom Asset</h3>
+    <label for="img360-url">URL immagine 360°</label>
+    <input type="text" id="img360-url" placeholder="https://.../360.jpg">
+    <button id="load-img360">Carica Immagine</button>
+
+    <label for="model-url">URL modello GLTF</label>
+    <input type="text" id="model-url" placeholder="https://.../model.glb">
+    <button id="load-model">Carica Modello</button>
+  </div>
+
+  <!-- Canvas 3D -->
   <div id="canvas-container"></div>
 
-  <!-- Sections One‑Page -->
+  <!-- Preset selection -->
+  <div class="preset-panel">
+    <button data-bg="your-360-bg.jpg" data-model="model.glb">Default</button>
+    <button data-bg="bg1.jpg" data-model="model1.glb">Preset 1</button>
+    <button data-bg="bg2.jpg" data-model="model2.glb">Preset 2</button>
+  </div>
+
+  <!-- Sections -->
   <section id="home"><h1>Benvenuto</h1></section>
   <section id="about"><h2>Chi Siamo</h2></section>
   <section id="contact"><h2>Contattaci</h2></section>
 
-  <!-- Script Modules -->
+  <!-- Script -->
   <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.156.1/build/three.module.js';
-    import { OrbitControls }  from 'https://unpkg.com/three@0.156.1/examples/jsm/controls/OrbitControls.js'; :contentReference[oaicite:0]{index=0}
-    import { GLTFLoader }     from 'https://unpkg.com/three@0.156.1/examples/jsm/loaders/GLTFLoader.js';
-    import Lenis              from 'https://cdn.jsdelivr.net/npm/@studio-freight/lenis@0.2.26/bundled/lenis.min.js';
-    import { gsap }           from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js';
-    import { ScrollTrigger }  from 'https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js';
-    gsap.registerPlugin(ScrollTrigger); :contentReference[oaicite:1]{index=1}
+    import * as THREE from "three";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+    import Lenis from "@studio-freight/lenis";
+    import { gsap } from "gsap";
+    import { ScrollTrigger } from "gsap/ScrollTrigger.js";
+    gsap.registerPlugin(ScrollTrigger);
 
-    // — Lenis smooth scroll
-    const lenis = new Lenis({ smooth: true, duration: 1.2 });
+    // Smooth scroll
+    const lenis = new Lenis({ smooth:true, duration:1.2 });
     function raf(t){ lenis.raf(t); requestAnimationFrame(raf) }
     requestAnimationFrame(raf);
 
-    // — Three.js setup
-    const container = document.getElementById('canvas-container');
-    const scene     = new THREE.Scene();
-    const camera    = new THREE.PerspectiveCamera( 45, innerWidth/innerHeight, 0.1, 100 );
-    camera.position.set(0, 1, 3);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Scene setup
+    const container = document.getElementById("canvas-container");
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);
+    camera.position.set(0,1,3);
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
     renderer.setSize(innerWidth, innerHeight);
     container.appendChild(renderer.domElement);
 
-    // — 360° Background Sphere
-    const loaderTex = new THREE.TextureLoader();
-    loaderTex.load('eso0932a.jpg', tex => {
-      const bgGeo = new THREE.SphereGeometry( 50, 60, 40 );
-      const bgMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide });
-      const bgMesh = new THREE.Mesh(bgGeo, bgMat);
-      scene.add(bgMesh);
+    let bgMesh = null, modelMesh = null;
 
-      // Rotate the background on scroll and loop back
-      gsap.to(bgMesh.rotation, {
-        y: Math.PI * 2,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: document.body,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true,
-        }
-      }); :contentReference[oaicite:2]{index=2}
-    });
+    function clearScrollTriggers() {
+      ScrollTrigger.getAll().forEach(st => st.kill());
+    }
 
-    // — Load and center GLTF model
-    const loader3D = new GLTFLoader();
-    loader3D.load('human-headed-winged-bull.glb', gltf => {
-      const model = gltf.scene;
-      scene.add(model);
-      model.position.set(0, 0, 0);
+    function load360(url) {
+      if(bgMesh) {
+        scene.remove(bgMesh);
+        clearScrollTriggers();
+      }
+      new THREE.TextureLoader().load(url, tex=>{
+        const sph = new THREE.Mesh(
+          new THREE.SphereGeometry(50,64,32),
+          new THREE.MeshBasicMaterial({ map:tex, side:THREE.BackSide })
+        );
+        bgMesh = sph; scene.add(sph);
+        gsap.to(sph.rotation, {
+          y:Math.PI*2, ease:"none",
+          scrollTrigger:{ trigger:document.body, start:"top top", end:"bottom bottom", scrub:true }
+        });
+      }, undefined, ()=>alert("Errore caricamento immagine"));
+    }
 
-      // Rotate model on scroll
-      gsap.to(model.rotation, {
-        y: Math.PI * 2,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: document.body,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true
-        }
-      }); :contentReference[oaicite:3]{index=3}
-    });
+    async function loadModel(url) {
+      if(modelMesh) {
+        scene.remove(modelMesh);
+        clearScrollTriggers();
+      }
+      const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+      new GLTFLoader().load(url, gltf=>{
+        modelMesh = gltf.scene; modelMesh.position.set(0,0,0);
+        scene.add(modelMesh);
+        gsap.to(modelMesh.rotation, {
+          y:Math.PI*2, ease:"none",
+          scrollTrigger:{ trigger:document.body, start:"top top", end:"bottom bottom", scrub:true }
+        });
+      }, undefined, ()=>alert("Errore caricamento modello"));
+    }
 
-    // Lights & Controls
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    // Default init
+    load360("eso0932a.jpg");
+    loadModel("human-headed_winged_bull.glb");
+
+    // Lights & controls
+    scene.add(new THREE.AmbientLight(0xffffff,0.8));
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.05; :contentReference[oaicite:4]{index=4}
+    controls.enableDamping = true; controls.dampingFactor = 0.05;
 
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", ()=> {
       camera.aspect = innerWidth/innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
     });
-
-    // — Render Loop
-    function animate(){
+    (function animate(){
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
-    }
-    animate();
+    })();
+
+    // Preset buttons
+    document.querySelectorAll(".preset-panel button").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        load360(btn.dataset.bg);
+        loadModel(btn.dataset.model);
+      });
+    });
+    // Custom Tools
+    document.getElementById("load-img360").onclick = ()=>{
+      const url = document.getElementById("img360-url").value.trim();
+      if(url) load360(url);
+    };
+    document.getElementById("load-model").onclick = ()=>{
+      const url = document.getElementById("model-url").value.trim();
+      if(url) loadModel(url);
+    };
   </script>
+
 </body>
 </html>
